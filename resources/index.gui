@@ -1,0 +1,45 @@
+<svg class="background">
+  <gradientRect id="myElement" width="100%" height="100%"  
+    gradient-type="radial"
+    gradient-x1="50%" gradient-y1="50%"
+    gradient-x2="50%+300" gradient-y2="50%+300"
+    gradient-color1="#1B2C40" gradient-color2="black"              
+  />
+  <rect x="0%" y="0%" width="100%" height="39" fill="#394003"/>
+  <rect x="0%" y="75%" width="100%" height="57" fill="#191970"/>
+  <text id="dateLable" x="50%" y="28%" text-anchor="middle" class="dateLable" pointer-events="visible"/>
+  <svg id="heartpicsvg" pointer-events="visible">
+    <image id="heartpic" x="2%" y="80%" height="32" width="32" href="stat_hr_solid_32px.png" fill="red" >
+      <animate id="imageanimate" attributeName="opacity" from="1" to="0" repeatCount="indefinite" dur="0.75"/>
+    </image>
+  </svg>
+  <text id="hrm" x="13%" y="92%" class="hrm" pointer-events="visible"></text> 
+  <svg id="stepspicsvg" pointer-events="visible">
+    <image id="stepspic" x="2%" y="2%" height="32" width="32" href="stat_steps_solid_32px.png" fill="red" />
+    <text id="stepLable" x="25%" y="11%" class="stepLable" pointer-events="visible"></text>
+  </svg>
+  <text id="kmLable" x="78%" y="11%" class="kmLable" pointer-events="visible"></text>
+  <text id="hourLable" pointer-events="visible" />
+  <text id="minuteLable" pointer-events="visible" />
+  <text id="replaceLable" class="replaceLable" pointer-events="visible" />
+  <text id="replaceHeartLable" class="replaceHeartLable" pointer-events="visible" />
+  <text id="timeLable" class="timeLable" fill-opacity="1" pointer-events="visible">:
+  <animate attributeName="opacity" from="1" to="0" repeatCount="indefinite" dur="1" final="freeze"/>
+  </text>
+  <text id="replacehourLable" class="replacehourLable" pointer-events="visible" />
+  <text id="replaceminuteLable" class="replaceminuteLable" pointer-events="visible" />
+  <text id="replacetimeLable" class="replacetimeLable" fill-opacity="1" pointer-events="visible">:
+  <animate attributeName="opacity" from="1" to="0" repeatCount="indefinite" dur="1" final="freeze"/>
+  </text>
+  
+  <text id="hrmrestLable" class="hrmrestLable" pointer-events="visible" x="75%" y="92%"/>
+  <image id="floorspic" x="65%" y="80%" height="24" width="24" href="stat_floors_solid_24px.png" fill="white" />
+  <text id="floorsLable" class="floorsLable" pointer-events="visible" x="75%" y="92%"/>
+  <image id="calspic" x="55%" y="80%" height="24" width="24" href="stat_cals_solid_24px.png" fill="white" />
+  <text id="calsLable" class="calsLable" pointer-events="visible" x="65%" y="92%"/>
+  <image id="heartrestpic" x="65%" y="80%" height="24" width="24" href="stat_hr_solid_24px.png" fill="white" />
+  <svg id="batpicsvg" pointer-events="visible">
+    <image id="batpic" x="57%" y="81%" height="32" width="32" href="stat_am_solid_32px.png" fill="red"/>
+    <text id="batLable" x="83%" y="92%" text-anchor="middle" class="batLable" pointer-events="visible" />
+  </svg>
+ </svg>
