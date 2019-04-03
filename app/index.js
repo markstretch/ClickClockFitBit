@@ -13,6 +13,7 @@ import { locale } from "user-settings";
 import { user } from "user-profile";
 import * as fs from "fs";
 import { me } from "appbit";
+import { me as device } from "device";
 
 //SVG elements
 const timeLable = document.getElementById("timeLable");
@@ -250,10 +251,13 @@ function arrangeScreenOnStepsPicClick() {
   hourLable.style.visibility= "hidden";
   timeLable.style.visibility= "hidden";
   minuteLable.style.visibility= "hidden";
-  floorspic.style.visibility = "visible";
-  floorsLable.style.fontSize = 40;
-  floorsLable.text = (today.local.elevationGain || 0);
-  floorsLable.style.visibility = "visible";
+  console.log(device.modelName);
+  if (device.modelName.toLowerCase() == "ionic" || device.modelName.toLowerCase() == "versa" ) {
+    floorspic.style.visibility = "visible";
+    floorsLable.style.fontSize = 40;
+    floorsLable.text = (today.local.elevationGain || 0);
+    floorsLable.style.visibility = "visible";
+  }
 }
 
 floorsLable.onmousedown = function(e) {
