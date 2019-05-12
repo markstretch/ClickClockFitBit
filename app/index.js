@@ -1,5 +1,6 @@
 import clock from "clock";
 import * as messaging from "messaging";
+import { peerSocket } from "messaging";
 import document from "document";
 import { HeartRateSensor } from "heart-rate";
 import { battery } from "power";
@@ -15,6 +16,7 @@ import * as fs from "fs";
 import { me } from "appbit";
 import { me as device } from "device";
 
+
 //SVG elements
 const timeLable = document.getElementById("timeLable");
 const hourLable = document.getElementById("hourLable");
@@ -22,6 +24,12 @@ const minuteLable = document.getElementById("minuteLable");
 const replacetimeLable = document.getElementById("replacetimeLable");
 const replacehourLable = document.getElementById("replacehourLable");
 const replaceminuteLable = document.getElementById("replaceminuteLable");
+const USDATE = "US";
+const EUDATE = "Europe";
+const DISTANCEKM = "Km";
+const DISTANCEMI = "Miles";
+let cDateFormat = EUDATE;
+let cDistanceUnit = DISTANCEKM;
 let hrLable = document.getElementById("hrm");
 let batLable = document.getElementById("batLable");
 let stepLable = document.getElementById("stepLable");
@@ -66,23 +74,128 @@ clock.granularity = "minutes";
 hrLable.text = "--";
 batLable.text = "--%";
 
-// Determine local and units
-function setDistanceUnits()
-{
-  var localelang = locale.language;
-  var userunits = units.distance;
-  if (localelang.toLowerCase() == "en-us" || localelang.toLowerCase() == "en-gb" && userunits.toLowerCase() != "metric") {
-      var num = ((today.local.distance /1000) * 0.62137);
-      var n = num.toFixed(3);
-      kmLable.text = n + " mi";
-  } else {
-      var num = (today.local.distance /1000);
-      var n = num.toFixed(3);
-      kmLable.text = n + " km";
+
+const SETTINGS_TYPE = "cbor";
+const SETTINGS_FILE = "settings.cbor";
+
+//set defaults and vals from settings on device
+let settings = null;
+setDefaults();
+
+function setDefaults() {
+  try {
+      settings = loadSettings();  
+      console.log("settings.selectedDate: " + settings.selectedDate);
+      console.log("settings.selectedUnits: " + settings.selectedUnits);
+      cDateFormat = settings.selectedDate;
+      cDistanceUnit = settings.selectedUnits;
+      console.log("settings loaded:" + settings);
+  } catch (ex) {
+      console.log("exception message: " + ex.message)
   }
 }
 
+
+me.onunload = saveSettings();
+
+function loadSettings() {
+  try {
+    console.log("trying to read settings");
+    settings = fs.readFileSync(SETTINGS_FILE, SETTINGS_TYPE);
+    console.log("Load Settings: settings.selectedUnits: " + settings.selectedUnits);
+    console.log("Load Settings: settings.selectedDate: " + settings.selectedDate);
+    if (settings == null) {
+      return {
+      //defaults if not settings made
+      selectedDate: JSON.stringify(EUDATE),
+      selectedUnits: JSON.stringify(DISTANCEKM)
+      }  
+    } else {
+      console.log("Returning loaded settings");
+      return settings;
+    }
+  } catch (ex) {
+    // Defaults
+    console.log("no settings file: " + ex);
+    return {
+      //defaults if not settings made
+      selectedDate: JSON.stringify(EUDATE),
+      selectedUnits: JSON.stringify(DISTANCEKM)
+    }
+  }
+}
+
+function saveSettings() {
+  console.log("In settings Save: ");
+  fs.writeFileSync(SETTINGS_FILE, settings, SETTINGS_TYPE);
+}
+
+// Determine locale and units
+// update for version 1.2.2
+function setDistanceUnits()
+{
+  console.log("in setdistance");
+  var localelang = locale.language;
+  var userunits = units.distance;
+  var num = (today.local.distance/1000);
+    
+  //if (localelang.toLowerCase() == "en-us" || localelang.toLowerCase() == "en-gb" && userunits.toLowerCase() != "metric") {
+  if (userunits.toLowerCase() != "metric") {
+      if (cDistanceUnit == DISTANCEMI) {
+        num = ((today.local.distance/1000) * 0.62137);
+        var n = num.toFixed(3);
+        kmLable.text = n + " mi";
+        console.log("mi - US");
+      } else {
+        num = (today.local.distance/1000);
+        var n = num.toFixed(3);
+        kmLable.text = n + " km";
+        console.log("km - US");
+      }
+  } else {
+      if (cDistanceUnit == DISTANCEKM) {
+        num = (today.local.distance/1000);
+        var n = num.toFixed(3);
+        kmLable.text = n + " km";
+        console.log("km - EU");
+      } else {
+        num = ((today.local.distance/1000) * 0.62137);
+        var n = num.toFixed(3);
+        kmLable.text = n + " mi";
+        console.log("mi - EU");
+      }
+    console.log("cDistanceUnit :" + cDistanceUnit); 
+        
+  }
+  settings.selectedUnits = cDistanceUnit;
+}
+
+// update for version 1.2.2
+function setDateFormat() {
+  //so date gets updated more quickly
+  todays = new Date();
+  var localelang = locale.language;
+  var userunits = units.distance;
+    
+  if (localelang.toLowerCase() == "en-us") {
+      if (cDateFormat == EUDATE) {
+        dateLable.text = todays.getDate() + "-" + (todays.getMonth() + 1) + "-" + todays.getFullYear();
+      } else  {
+          dateLable.text = (todays.getMonth() + 1) + "-" + todays.getDate() + "-" + todays.getFullYear();  
+      }
+    } else {
+      if (cDateFormat == USDATE) {
+        dateLable.text = (todays.getMonth() + 1) + "-" + todays.getDate() + "-" + todays.getFullYear();
+      } else {
+        dateLable.text = todays.getDate() + "-" + (todays.getMonth() + 1) + "-" + todays.getFullYear();
+      }
+    }
+  settings.selectedDate = cDateFormat;
+}
+  
+
 setDistanceUnits();
+setDateFormat();
 
 // Want heart rate to be constantly updated
 hrm.onreading = function() {
@@ -95,7 +208,6 @@ hrm.onreading = function() {
 
 batLable.text = Math.floor(battery.chargeLevel) + "%"; 
 stepLable.text = today.local.steps;
-dateLable.text = todays.getDate() + "-" + (todays.getMonth() + 1) + "-" + todays.getFullYear();
 
 hrm.start();
 
@@ -123,7 +235,8 @@ clock.ontick = (evt) => {
 // update display with stats only when display is switched on
 // saves battery - better than doing it in clock ticks - every minute
 display.onchange = () => {
-  //console.log(`The display was turned ${display.on ? "on" : "off"}`)
+  
+  console.log("Units: " + units.distance);
   console.log("Locale: " + locale.language);
   //update other stats
   if (display.on) {
@@ -132,14 +245,18 @@ display.onchange = () => {
       //randomly change colors throught the day every minute
       myElement.gradient.colors.c2 = randomColors();
     }
-    dateLable.text = todays.getDate() + "-" + (todays.getMonth() + 1) + "-" + todays.getFullYear();
-    batLable.text = Math.floor(battery.chargeLevel) + "%"; 
+    
     setDistanceUnits();
+    setDateFormat();
+    batLable.text = Math.floor(battery.chargeLevel) + "%"; 
+    
     //display real(ish) heart rate on pulsating heart image
     let imageanimate = document.getElementById("imageanimate");
     imageanimate.dur= 60/hrm.heartRate;
     batpic.style.opacity = Math.floor(battery.chargeLevel) / 100;
   }
+  
+  saveSettings();
 }
                
 // make a black background and dim forground colors for quieter night viewing- reserved
@@ -429,4 +546,46 @@ function showAll () {
   stepspic.style.visibility = "visible";
   batpic.style.visibility = "visible";
 }
+
+//Message is received
+messaging.peerSocket.onmessage = evt => {
+  console.log(`App received: ${JSON.stringify(evt)}`);
+  
+  if (evt.data.key === "selectedDate" && evt.data.newValue) {
+    let dateChoice = JSON.parse(evt.data.newValue);
+    console.log("Setting dateformat2:" + dateChoice.selected);
+    console.log("Setting dateformat4:" + evt.data.newValue);
+    if (dateChoice.selected == 0) {
+      cDateFormat = USDATE;
+    } else {
+      cDateFormat = EUDATE;
+    }
+    setDateFormat();
+    settings.selectedDate = cDateFormat;
+  }
+  
+  if (evt.data.key === "selectedUnits" && evt.data.newValue) {
+    let unitChoice = JSON.parse(evt.data.newValue);
+    console.log("Setting unit choice:" + unitChoice.selected);
+    console.log("Setting unit choice:" + evt.data.newValue);
+    if (unitChoice.selected == 0) {
+      cDistanceUnit = DISTANCEKM;
+    } else {
+      cDistanceUnit = DISTANCEMI;
+    }
+    console.log("Setting unit choice cDistanceUnit: " + cDistanceUnit);
+    setDistanceUnits();
+    settings.selectedUnits = cDistanceUnit;
+  }
+};
+
+// Message socket opens
+messaging.peerSocket.onopen = () => {
+  console.log("App Socket Open");
+};
+
+// Message socket closes
+messaging.peerSocket.onclose = () => {
+  console.log("App Socket Closed");
+};
 
